@@ -1,0 +1,5 @@
+package xor
+
+class OptWorkerJobIter {
+
+}

@@ -22,7 +22,6 @@ class ServerControl(val jobs: Iterator[(Id, Job)]) extends Actor {
     register('Server, this)
     saver.start()
     classLoadAct.start()
-    var asd= new knapsack.KnapState(0d,Nil,Nil)
     loop {
       receive {
         case msg: NetworkMessage => handleNetwork(msg)
