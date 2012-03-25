@@ -10,20 +10,38 @@ object ServerEntry {
 
     def procargs(i: Int) {
       if (i < args.length) {
-        val Switch = new Regex("-[^o]+")
         args(i) match {
           case "-v" => {
             serv.verbose = true
             procargs(i + 1)
           }
           case "-o" => {
-            if (args.length > i + 1){
-            serv.outfile = args(i + 1)
-            procargs(i+2)
+            if (args.length > i + 1) {
+              serv.outfile = args(i + 1)
+              procargs(i + 2)
+            } else {
+              println("Missing argument after -o, ignoring option")
             }
-            else {
-              println("missing argument after -o")
-              exit()
+          }
+          case "-p" => {
+            if (args.length > i + 1) {
+              try {
+              serv.port = args(i + 1).toInt
+              }
+              catch {
+                case _ => println("Invalid argument after -p, ignoring option")
+              }
+              procargs(i + 2)
+            } else {
+              println("Missing argument after -p, ignoring option")
+            }
+          }
+          case "-n" => {
+            if (args.length > i + 1) {
+              serv.sym = Symbol(args(i + 1))
+              procargs(i + 2)
+            } else {
+              println("Missing argument after -n, ignoring option")
             }
           }
         }

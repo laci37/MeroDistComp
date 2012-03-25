@@ -1,7 +1,7 @@
 package server
 import actors.Actor
 import java.io._
-class Saver(filename: String) extends Actor {
+class Saver(val filename: String) extends Actor {
   val out = new BufferedWriter(new FileWriter(new File(filename)))
   def act() = {
     import ServerInternalMessage._

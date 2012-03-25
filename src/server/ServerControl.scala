@@ -8,20 +8,23 @@ class ServerControl(val jobs: Iterator[(Id, Job)]) extends Actor {
   var clients: List[Client] = Nil
   var jobsPending = Map.empty[Id, (Job, Int)]
   var jobsRefused = Map.empty[Id, Job]
-  var jobsWorking = Map.empty[Id, (Job,Client)]
+  var jobsWorking = Map.empty[Id, (Job, Client)]
   var outfile = "output.txt"
   var verbose = false
-
+  var port = 12345
+  var sym = 'Server
   val classLoadAct = new ClassLoaderActor
-  val saver = new Saver(outfile)
+  lazy val saver = new Saver(outfile)
   classLoader = this.getClass.getClassLoader
 
   def act() = {
     println("\007")
-    alive(12345)
-    register('Server, this)
+    alive(port)
+    register(sym, this)
     saver.start()
     classLoadAct.start()
+    println("Listening:"+sym+" on port "+port)
+    println("Output: "+saver.filename)
     loop {
       receive {
         case msg: NetworkMessage => handleNetwork(msg)
@@ -32,30 +35,28 @@ class ServerControl(val jobs: Iterator[(Id, Job)]) extends Actor {
 
   def handleNetwork(msg: NetworkMessage) = {
     import NetworkMessage._
-    if(verbose) println(msg)
+    if (verbose) println(msg)
     msg match {
       case Hi => {
-        if(!clients.contains(sender)){
-        println("New Client")
-        clients = sender :: clients
-        sender ! Hi
-        assignJob(sender)
+        if (!clients.contains(sender)) {
+          println("New Client")
+          clients = sender :: clients
+          sender ! Hi
+          assignJob(sender)
         }
       }
       case JobAccepted(id) => {
         if (jobsPending.contains(id)) {
-          jobsWorking +=((id,(jobsPending(id)._1,sender)))
-          jobsPending = jobsPending - id 
-        }
-        else if (jobsRefused.contains(id)) {
-          jobsWorking +=((id,(jobsRefused(id),sender)))
+          jobsWorking += ((id, (jobsPending(id)._1, sender)))
+          jobsPending = jobsPending - id
+        } else if (jobsRefused.contains(id)) {
+          jobsWorking += ((id, (jobsRefused(id), sender)))
           jobsRefused -= id
-        }
-        else {
+        } else {
           sender ! ExitJob
           assignJob(sender)
         }
-        
+
       }
       case JobRefused(id) => {
         if (jobsPending.contains(id)) {
@@ -76,7 +77,7 @@ class ServerControl(val jobs: Iterator[(Id, Job)]) extends Actor {
 
   def handleInternal(msg: ServerInternalMessage) = {
     import ServerInternalMessage._
-    if(verbose) println(msg)
+    if (verbose) println(msg)
     msg match {
       case CyclicCheck => {
         val curTime = System.currentTimeMillis / 1000
@@ -97,18 +98,17 @@ class ServerControl(val jobs: Iterator[(Id, Job)]) extends Actor {
         val ret = jobsRefused.head
         jobsRefused = jobsRefused.tail
         Some(ret)
-      } else if(jobs.hasNext) 
+      } else if (jobs.hasNext)
         Some(jobs.next())
       else None)
-    if(newjob.isDefined){
-    c ! AssignJob(newjob.get._1, newjob.get._2)
-    jobsPending += newjob.get._1 -> (newjob.get._2, (System.currentTimeMillis() / 1000).toInt)
-    }
-    else {
+    if (newjob.isDefined) {
+      c ! AssignJob(newjob.get._1, newjob.get._2)
+      jobsPending += newjob.get._1 -> (newjob.get._2, (System.currentTimeMillis() / 1000).toInt)
+    } else {
       println("No job to give")
-      if(jobsWorking.size==0) {
+      if (jobsWorking.size == 0) {
         println("All Jobs done")
-        clients foreach {c => c ! Quit}
+        clients foreach { c => c ! Quit }
         saver ! ServerInternalMessage.Quit
         println("\007")
         exit()
