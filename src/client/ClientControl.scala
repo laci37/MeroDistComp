@@ -32,7 +32,7 @@ class ClientControl(val port: Int, val name: Symbol, hiserv: OutputChannel[Any])
 
   def handleNetwork(msg: NetworkMessage): Unit = {
     import NetworkMessage._
-    println(msg)
+    if (ClientEntry.verbose) println(msg)
     msg match {
 
       case AssignJob(id, newjob) => {
@@ -57,7 +57,7 @@ class ClientControl(val port: Int, val name: Symbol, hiserv: OutputChannel[Any])
         exit()
       }
 
-      case Hi => println("Connup")
+      case Hi => println("Connection up")
     }
   }
 
@@ -90,7 +90,7 @@ class ClientControl(val port: Int, val name: Symbol, hiserv: OutputChannel[Any])
 
   def handleInternal(msg: ClientInternalMessage): Unit = {
     import ClientInternalMessage._
-    println(msg)
+    if (ClientEntry.verbose) println(msg)
     msg match {
       case JobResult(id, result) => {
         resultBuffer += result

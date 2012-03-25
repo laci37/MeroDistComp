@@ -5,7 +5,7 @@ class Worker extends Actor {
   def onJob = _onjob
   override def act() = {
     import ClientInternalMessage._
-    println("worker start")
+    println("Worker start")
     loop {
       receive {
         case AssignJob(id, job) => {

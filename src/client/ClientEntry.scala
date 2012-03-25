@@ -9,11 +9,18 @@ object ClientEntry extends App with Global {
    val hinode=new Node(args(0),Integer.parseInt(args(1)))
    val hiserv= RemoteActor.select(hinode, Symbol(args(2)))
    val control=new ClientControl(1235,'client,hiserv)
-   actors.Debug.level=3
+   for(i<-(3 to args.length-1)) {
+     args(i) match {
+       case "-v" => verbose=true
+       
+       case _ => println("invalid arg: "+args(i))
+     }
+   }
+   //actors.Debug.level=3
    control.start()
 }
 
 trait Global{
-  var verbose=true
+  var verbose=false
   var classReqTimeOut=5000
 }

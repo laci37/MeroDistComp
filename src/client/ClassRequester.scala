@@ -10,7 +10,7 @@ class ClassRequester(serv: Node, sym: Symbol, classname: String) extends Actor {
     RemoteActor.alive(TcpService.generatePort)
     val server = RemoteActor.select(serv, sym)
     import msg.NetworkMessage._
-    if (ClientEntry.verbose) println("requesting remote class " + classname + " from " + server)
+    if (ClientEntry.verbose) println("Requesting remote class " + classname + " from " + server)
     server ! ClassRequest(classname)
     if (ClientEntry.verbose) println("ClassReq(" + classname + ") start")
     loop {
@@ -27,7 +27,7 @@ class ClassRequester(serv: Node, sym: Symbol, classname: String) extends Actor {
         }
         case _ =>
       }
-      println("classreq timeout trying to send buffer again")
+      println("Classreq timeout, trying to send buffer again")
       RemoteActor.selfKernel.service.asInstanceOf[TcpService].sendBuffered(serv)
     }
   }
